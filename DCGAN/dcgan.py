@@ -8,27 +8,27 @@ class Generator(nn.Module):
 
         self.gen = nn.Sequential(
                                                         ## Block 1
-                                                        nn.ConvTranspose2d(zdims, 1024, kernel_size=4, stride = 1,padding =0, bias=False),
-                                                        nn.BatchNorm2d(1024),
-                                                        nn.ReLU(inplace=True),
-
-                                                        ## Block 2
-                                                        nn.ConvTranspose2d(1024, 512, kernel_size=8, stride = 2,padding =1, bias=False),
+                                                        nn.ConvTranspose2d(zdims, 512, kernel_size=4, stride = 1,padding =0, bias=False),
                                                         nn.BatchNorm2d(512),
                                                         nn.ReLU(inplace=True),
 
-                                                        ## Block 3
-                                                        nn.ConvTranspose2d(512, 256, kernel_size=16, stride = 2,padding =1, bias=False),
+                                                        ## Block 2
+                                                        nn.ConvTranspose2d(512, 256, kernel_size=4, stride = 2,padding =1, bias=False),
                                                         nn.BatchNorm2d(256),
                                                         nn.ReLU(inplace=True),
 
-                                                        ## Block 4
-                                                        nn.ConvTranspose2d(256, 128, kernel_size=32, stride = 2,padding =1, bias=False),
+                                                        ## Block 3
+                                                        nn.ConvTranspose2d(256, 128, kernel_size=4, stride = 2,padding =1, bias=False),
                                                         nn.BatchNorm2d(128),
+                                                        nn.ReLU(inplace=True),
+
+                                                        ## Block 4
+                                                        nn.ConvTranspose2d(128, 64, kernel_size=4, stride = 2,padding =1, bias=False),
+                                                        nn.BatchNorm2d(64),
                                                         nn.ReLU(inplace=True),
                                                         
                                                         ## Output Layer
-                                                        nn.ConvTranspose2d(128, out_dims, kernel_size=64, stride = 2,padding =1, bias=False),
+                                                        nn.ConvTranspose2d(64, out_dims, kernel_size=4, stride = 2,padding =1, bias=False),
                                                         nn.Tanh()
         )
     
