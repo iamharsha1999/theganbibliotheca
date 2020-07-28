@@ -1,4 +1,4 @@
-# theganbibliotheca
+# theganbibliotheca (The GAN Bibliotheca)
 A collection of all the GANs implemented using the PyTorch Framework.
 
 ## List of GANs Implemented
