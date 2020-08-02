@@ -1,0 +1,3 @@
+## Files to avoid
+.ipynb_checkpoints/
+**/__pycache__
