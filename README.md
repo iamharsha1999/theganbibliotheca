@@ -9,4 +9,5 @@ A collection of all the GANs implemented using the PyTorch Framework.
 5.  <a href='https://arxiv.org/pdf/1701.07875.pdf'>Wasserstein GANs (WGAN) </a> <br>
 6.  <a href='https://arxiv.org/pdf/1703.05192.pdf'> Disco GANs</a> <br>
 7.  <a href = 'https://arxiv.org/pdf/1907.09837.pdf'> Chroma GAN (Image Colorization) </a> <br>
+8.  <a href = 'https://arxiv.org/abs/1611.07004'>PatchGANs (pix2pix)</a> <br>
 
