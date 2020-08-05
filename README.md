@@ -11,12 +11,12 @@ A collection of all the GANs implemented using the PyTorch Framework.
 7.  [Chroma GAN (Image Colorization)](#) [[Paper]](https://arxiv.org/pdf/1907.09837.pdf)<br>
 8.  [PatchGANs (pix2pix)](#) [[Paper]](https://arxiv.org/abs/1611.07004)<br>
 
-<hr><br>
+<hr>
 
 ### DCGAN
 MNIST |CelebA Data
 ---------------|:-----------------
-<img src="readme_materials/DCGAN/MNIST_DCGAN_LOSS.png" width="200" height="150" />|<img src="readme_materials/DCGAN/CELEBA_DCGAN_LOSS.png" width="200" height="150" />
+<img src="readme_materials/DCGAN/MNIST_DCGAN_LOSS.png" width="400" height="300" />|<img src="readme_materials/DCGAN/CELEBA_DCGAN_LOSS.png" width="400" height="300" />
 
 
 
