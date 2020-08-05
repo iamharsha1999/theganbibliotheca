@@ -1,6 +1,6 @@
 # theganbibliotheca (The GAN Bibliotheca)
 A collection of all the GANs implemented using the PyTorch Framework.
-
+![gan logo](readme_materials/gan_logo.png)
 ## List of GANs Implemented
 1.  [DCGAN](#dcgan)  [[Paper]](https://arxiv.org/abs/1511.06434)<br>
 2. [Super Resolution GANs](#) [[Paper]](https://arxiv.org/abs/1609.04802)<br>
