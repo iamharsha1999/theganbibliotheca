@@ -1,6 +1,4 @@
 # theganbibliotheca (The GAN Bibliotheca)
-
-![gan logo](readme_materials/gan_logo.png)
 A collection of all the GANs implemented using the PyTorch Framework.
 <br>
 
