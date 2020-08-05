@@ -2,12 +2,22 @@
 A collection of all the GANs implemented using the PyTorch Framework.
 
 ## List of GANs Implemented
-1.  <a href='https://arxiv.org/abs/1511.06434'>DCGAN</a> <br>
-2.  <a href='https://arxiv.org/abs/1609.04802'>Super Resolution GANs </a> <br>
-3.  <a href='https://arxiv.org/abs/1411.1784'>Conditional GANs </a> <br>
-4.  <a href='https://arxiv.org/abs/1612.03242'>Stack GAN</a> <br>
-5.  <a href='https://arxiv.org/pdf/1701.07875.pdf'>Wasserstein GANs (WGAN) </a> <br>
-6.  <a href='https://arxiv.org/pdf/1703.05192.pdf'> Disco GANs</a> <br>
-7.  <a href = 'https://arxiv.org/pdf/1907.09837.pdf'> Chroma GAN (Image Colorization) </a> <br>
-8.  <a href = 'https://arxiv.org/abs/1611.07004'>PatchGANs (pix2pix)</a> <br>
+1.  [DCGAN](#dcgan)  [[Paper]](https://arxiv.org/abs/1511.06434)<br>
+2. [Super Resolution GANs](#) [[Paper]](https://arxiv.org/abs/1609.04802)<br>
+3.  [Conditional GANs ](#) [[Paper]](https://arxiv.org/abs/1411.1784)<br>
+4.  [Stack GAN](#) [[Paper]](#https://arxiv.org/abs/1612.03242)<br>
+5.  [Wasserstein GANs(WGAN) ](#) [[Paper]](https://arxiv.org/pdf/1701.07875.pdf')<br>
+6.  [Disco GANs](#)  [[Paper]]('https://arxiv.org/pdf/1703.05192.pdf)<br>
+7.  [Chroma GAN (Image Colorization)](#) [[Paper]](https://arxiv.org/pdf/1907.09837.pdf)<br>
+8.  [PatchGANs (pix2pix)](#) [[Paper]](https://arxiv.org/abs/1611.07004)<br>
+
+<hr><br>
+
+### DCGAN
+MNIST |CelebA Data
+---------------|:-----------------
+<img src="readme_materials/DCGAN/MNIST_DCGAN_LOSS.png" width="200" height="150" />|<img src="readme_materials/DCGAN/CELEBA_DCGAN_LOSS.png" width="200" height="150" />
+
+
+
 
