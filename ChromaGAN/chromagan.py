@@ -133,12 +133,8 @@ class discriminator(nn.Module):
 
     def forward(self,x,y):
 
-        x = torch.cat(x,y)
+        x = torch.cat((x,y), dim = 1)
 
         x = self.model(x)
 
-        return x 
-
-
-
-        
+        return x     
