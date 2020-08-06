@@ -28,21 +28,70 @@ class Trainer():
         self.klloss = nn.KLDivLoss()
         self.mseloss = nn.MSELoss()    
         self.dataloader = ## need to fill
-
-
+                
     def wgan_loss(self,fake, real ):
         
         return -(torch.mean(real) - torch.mean(fake))
     
     def gradient_penalty(self):
 
+    def interpolated_images(self):
+    
+    def train_gen(self, l, vgg_output, real_ab):
+
+        ## Generate images and class output
+        img_class, gen_out = self.generator(l)
+
+        ## Fake images for discriminator
+        dis_out = self.discriminator(gen_out)
+
+        dis_loss = -dis_out.mean()
+        kl_loss = self.klloss(img_class, vgg_output)
+        ce_loss = self.mseloss(gen_out, real_ab)
+
+        loss = ce_loss + 0.003*kl_loss + dis_loss
+
+
+        ## Update the weights
+        self.generator.zero_grad()
+        loss.backward()
+        self.gen_optimizer.step()
+
+        return loss 
+
+    def train_disc(self, real_ab, real_l):
+
+        ## Generated Data
+        _, fake_ab = self.generator(real_l)
+
+        ## Predictions from discriminator for real and fake chrominance channels
+        real_dis_out = self.discriminator(real_ab, real_l)
+        fake_dis_out = self.discriminator(fake_ab.detach(), real_l)
+
+        ## Compute the gradient penalty
+        gp = self.gradient_penalty(real_ab, fake_ab)
+
+        ##Update the weights
+        self.discriminator.zero_grad()
+        loss = self.wgan_loss(fake_dis_out, real_dis_out) + gp 
+        loss.backward()
+        self.dis_optimizer.step()
+
+        return loss 
+
     def train(self):
+
+        self.gen_loss = []
+        self.dis_loss = []
 
         for epoch in range(self.epochs):
 
             epoch_loss = {'gen_loss':[], 'dis_loss':[]}
             print('[Epoch: {} / {}]'.format(epoch+1, self.epochs))
-
+            
+            eg_loss = 0
+            ed_loss = 0 
+            
             for batch in tqdm(self.dataloader):
 
                 real_l,real_ab = batch['l'].to(self.device),batch['ab'].to(self.device)
@@ -51,54 +100,18 @@ class Trainer():
                 bs = images.size(0)
 
                 ## VGG class prediction for real grayscale image
-                output_vgg =  self.vgg_model
+                output_vgg =  self.vgg_model(real_l)
 
-                ## Labels for Real Images and Fake Images
-                targetr = torch.ones(bs, device = device)
-                targetf = torch.zeros(bs, device = device)
-                
-                ## Produce fake images with generator
-                img_class,fake_ab = self.generator(real_l)
+                ## Update the generator
+                gen_loss = self.train_generator(real_l, output_vgg, real_ab)
+                eg_loss.append(gen_loss)
 
-                ## Clear the accumulated gradients
-                generator.zero_grad()
+                ## Update the discrminator
+                dis_loss = self.train_disc(real_ab, real_l)
+                ed_loss.append(dis_loss)
 
-                col_err = self.mseloss(fake_ab, real_ab)
-                col_err.backward()
-                class_loss = self.klloss(img_class, output_vgg)
-                class_loss.backward()        
-                
-                ## Fake images for generator
-                dis_out = discriminator(fake_ab, real_l)
-                fake_loss = self.wgan_loss(dis_out, targetf)
+            self.gen_loss.append(torch.mean(torch.FloatTensor(eg_loss)))
+            self.dis_loss.append(torch.mean(torch.FloatTensor(ed_loss)))
 
-                loss = col_err + 0.003 * class_loss + fake_loss
-                loss.backward()
-
-                ## Update generator parameters
-                self.gen_optimizer.step()
-
-                ## Clear the accumulated gradients
-                discriminator.zero_grad()
-                
-                ## Fake images for discriminator
-                dis_fake_out = self.discriminator(fake_ab.detach(), real_l)
-                                
-                ## Real Images for discriminator
-                dis_real_out = self.discriminator(real_ab, real_l)
-                
-                dis_loss = self.wgan_loss(dis_fake_out, dis_real_out) 3# + gradient_penalty
-                dis_loss.backward()
-
-                ## Update discriminator parameters
-                self.dis_optimizer.step()
-
-           
-
-
-
-
-
-
-
-        
+            ## Print Epoch Information
+            print('[ Generator Loss: {} | Discriminator Loss: {} ] '.format(gen_loss, dis_loss))
