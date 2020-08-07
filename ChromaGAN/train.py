@@ -1,4 +1,5 @@
 import torch 
+from torch.autograd import grad 
 from tqdm import tqdm
 from torch.optim import Adam
 import torch.nn as nn
@@ -28,14 +29,32 @@ class Trainer():
         self.klloss = nn.KLDivLoss()
         self.mseloss = nn.MSELoss()    
         self.dataloader = ## need to fill
+
+        self.gp_weight = 10
                 
     def wgan_loss(self,fake, real ):
         
         return -(torch.mean(real) - torch.mean(fake))
     
-    def gradient_penalty(self):
+    def gradient_penalty(self, real_ab, fake_ab):
 
-    def interpolated_images(self):
+        interpolated = self.interpolated_images(real_ab, fake_ab)
+        dis_interpolated = self.discriminator(interpolated)
+
+        gradients = grad(outputs = dis_interpolated, inputs=interpolated, grad_outputs=torch.ones(dis_interpolated.size())
+                                         create_graph=True, retain_graph=True)[0]
+        gradients = gradients.view(real_ab.size()[0], -1)
+        gradients_norm = torch.sqrt(torch.sum(gradients ** 2, dim=1) + 1e-12)
+
+        loss = self.gp_weight * ((gradients_norm - 1) ** 2).mean()
+        
+    def interpolated_images(self, x, y):
+
+        alpha = torch.randn(x.size()[0],1,1,1).expand_as(x).to(self.device)
+        interpolated = alpha * x + (1-alpha) * y
+
+        return interpolated
+
     
     def train_gen(self, l, vgg_output, real_ab):
 
