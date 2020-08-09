@@ -28,7 +28,7 @@ class Trainer():
         
         self.klloss = nn.KLDivLoss()
         self.mseloss = nn.MSELoss()    
-        self.dataloader = ## need to fill
+        self.dataloader = data 
 
         self.gp_weight = 10
                 
@@ -41,7 +41,7 @@ class Trainer():
         interpolated = self.interpolated_images(real_ab, fake_ab)
         dis_interpolated = self.discriminator(interpolated)
 
-        gradients = grad(outputs = dis_interpolated, inputs=interpolated, grad_outputs=torch.ones(dis_interpolated.size())
+        gradients = grad(outputs = dis_interpolated, inputs=interpolated, grad_outputs=torch.ones(dis_interpolated.size()),
                                          create_graph=True, retain_graph=True)[0]
         gradients = gradients.view(real_ab.size()[0], -1)
         gradients_norm = torch.sqrt(torch.sum(gradients ** 2, dim=1) + 1e-12)
