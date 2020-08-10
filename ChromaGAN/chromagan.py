@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import pretrainedmodels
 
-class generator(nn.Module):
+class Generator(nn.Module):
 
     def __init__(self):
         super().__init__()
@@ -109,31 +109,32 @@ class generator(nn.Module):
         return x_global_class, x_output
       
 
-class discriminator(nn.Module):
+class Discriminator(nn.Module):
 
     def __init__(self):
         super().__init__()
 
         self.model = nn.Sequential(
             
-            nn.Conv2d(3, 64, kernel_size=4, padding = 1, bias=False),
+            nn.Conv2d(3, 64, kernel_size=4, stride =2, padding = 1, bias=False),
             nn.LeakyReLU(0.3, inplace=True),
 
-            nn.Conv2d(64, 128, kernel_size=4, padding = 1, bias=False),
+            nn.Conv2d(64, 128, kernel_size=4, stride =2, padding = 1, bias=False),
             nn.LeakyReLU(0.3, inplace=True),
 
-            nn.Conv2d(128, 256, kernel_size=4, padding = 1, bias=False),
+            nn.Conv2d(128, 256, kernel_size=4, stride =2, padding = 1, bias=False),
             nn.LeakyReLU(0.3, inplace=True),
 
-            nn.Conv2d(256, 512, kernel_size=4, padding = 1, bias=False),
+            nn.Conv2d(256, 512, kernel_size=4, stride =1, padding = 3,dilation=2,bias=False),
             nn.LeakyReLU(0.3, inplace=True),
 
-            nn.Conv2d(512, 1, kernel_size=4, padding =1, bias=False)
+            nn.Conv2d(512, 1, kernel_size=4, stride =1, padding =3,dilation=2, bias=False)
             )
 
     def forward(self,x,y):
 
         x = torch.cat((x,y), dim = 1)
+        print(x.size())
 
         x = self.model(x)
 
