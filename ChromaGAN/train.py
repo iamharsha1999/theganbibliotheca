@@ -20,6 +20,9 @@ class Trainer():
             print('Device Name:', torch.cuda.get_device_name(0))
         else:
             self.device = torch.device('cpu')
+        
+        self.generator = self.generator.to(self.device)
+        self.discriminator = self.discriminator.to(self.device)
 
         self.epochs = 5
         self.batch_size = 10
@@ -36,17 +39,19 @@ class Trainer():
         
         return -(torch.mean(real) - torch.mean(fake))
     
-    def gradient_penalty(self, real_ab, fake_ab):
+    def gradient_penalty(self, real_ab, fake_ab, real_l):
 
         interpolated = self.interpolated_images(real_ab, fake_ab)
-        dis_interpolated = self.discriminator(interpolated)
+        dis_interpolated = self.discriminator(interpolated,real_l)
 
-        gradients = grad(outputs = dis_interpolated, inputs=interpolated, grad_outputs=torch.ones(dis_interpolated.size()),
+        gradients = grad(outputs = dis_interpolated, inputs=interpolated, grad_outputs=torch.ones(dis_interpolated.size()).to(self.device),
                                          create_graph=True, retain_graph=True)[0]
         gradients = gradients.view(real_ab.size()[0], -1)
         gradients_norm = torch.sqrt(torch.sum(gradients ** 2, dim=1) + 1e-12)
 
         loss = self.gp_weight * ((gradients_norm - 1) ** 2).mean()
+
+        return loss 
         
     def interpolated_images(self, x, y):
 
@@ -60,9 +65,9 @@ class Trainer():
 
         ## Generate images and class output
         img_class, gen_out = self.generator(l)
-
+      
         ## Fake images for discriminator
-        dis_out = self.discriminator(gen_out)
+        dis_out = self.discriminator(gen_out, l)
 
         dis_loss = -dis_out.mean()
         kl_loss = self.klloss(img_class, vgg_output)
@@ -88,7 +93,7 @@ class Trainer():
         fake_dis_out = self.discriminator(fake_ab.detach(), real_l)
 
         ## Compute the gradient penalty
-        gp = self.gradient_penalty(real_ab, fake_ab)
+        gp = self.gradient_penalty(real_ab, fake_ab, real_l)
 
         ##Update the weights
         self.discriminator.zero_grad()
@@ -108,21 +113,21 @@ class Trainer():
             epoch_loss = {'gen_loss':[], 'dis_loss':[]}
             print('[Epoch: {} / {}]'.format(epoch+1, self.epochs))
             
-            eg_loss = 0
-            ed_loss = 0 
+            eg_loss = []
+            ed_loss = []
             
             for batch in tqdm(self.dataloader):
 
                 real_l,real_ab = batch['l'].to(self.device),batch['ab'].to(self.device)
                 
                 ## Retrive the Batch Size
-                bs = images.size(0)
+                bs = real_l.size(0)
 
                 ## VGG class prediction for real grayscale image
-                output_vgg =  self.vgg_model(real_l)
+                output_vgg =  self.vgg_model(real_l.repeat(1,3,1,1))
 
                 ## Update the generator
-                gen_loss = self.train_generator(real_l, output_vgg, real_ab)
+                gen_loss = self.train_gen(real_l, output_vgg, real_ab)
                 eg_loss.append(gen_loss)
 
                 ## Update the discrminator

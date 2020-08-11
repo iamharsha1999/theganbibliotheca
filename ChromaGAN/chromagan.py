@@ -68,19 +68,19 @@ class Generator(nn.Module):
             nn.Conv2d(512,256, kernel_size=1, stride=1, padding =0, bias = False),
             nn.ReLU(inplace = False),
 
-            nn.Conv2d(256,128,kernel_size=3, stride =1, padding =2, bias=False),
+            nn.Conv2d(256,128,kernel_size=3, stride =1, padding =1, bias=False),
             nn.ReLU(inplace = True),
 
             nn.UpsamplingNearest2d(scale_factor=2),
-            nn.Conv2d(128,64, kernel_size=3, stride=1, padding = 2),
+            nn.Conv2d(128,64, kernel_size=3, stride=1, padding = 1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(64,64, kernel_size=3, stride=1, padding = 2),
+            nn.Conv2d(64,64, kernel_size=3, stride=1, padding = 1),
             nn.ReLU(inplace=True),
             
             nn.UpsamplingNearest2d(scale_factor=2),
-            nn.Conv2d(64,32, kernel_size=3, stride=1, padding = 2),
+            nn.Conv2d(64,32, kernel_size=3, stride=1, padding = 1),
             nn.ReLU(inplace = True),
-            nn.Conv2d(32,2, kernel_size=3, stride = 1, padding = 2),
+            nn.Conv2d(32,2, kernel_size=3, stride = 1, padding = 1),
             nn.ReLU(inplace = True),
 
             nn.UpsamplingNearest2d(scale_factor=2)
@@ -92,20 +92,20 @@ class Generator(nn.Module):
         x = x.repeat(1,3,1,1)
 
         x_features = self.vgg_model(x) 
-
-        x_global_features = self.global_features(x_features)       
         
+        x_global_features = self.global_features(x_features)
+                
         x_global_features2 = self.global_features2(x_global_features)
         x_global_features2 =  x_global_features2.unsqueeze(2).repeat(1,1,28*28).view(-1,256,28,28)
-
+       
         x_global_class = self.global_featuresclass(x_global_features)
-
+        
         x_midlevel_features = self.midlevel_features(x_features)
-
+       
         x_fused_features = torch.cat((x_global_features2, x_midlevel_features ), dim = 1)
-
+       
         x_output = self.output_model(x_fused_features)
-
+        
         return x_global_class, x_output
       
 
@@ -134,8 +134,7 @@ class Discriminator(nn.Module):
     def forward(self,x,y):
 
         x = torch.cat((x,y), dim = 1)
-        print(x.size())
-
+        
         x = self.model(x)
 
         return x     
