@@ -4,10 +4,11 @@ from tqdm import tqdm
 from torch.optim import Adam
 import torch.nn as nn
 import pretrainedmodels
+import cv2
 
 class Trainer():
 
-    def __init__(self, gen , dis,data, device = 'cuda'):
+    def __init__(self, gen , dis,data, fixed_gray_images,device = 'cuda'):
 
         self.device = device 
         self.generator = gen 
@@ -34,6 +35,8 @@ class Trainer():
         self.dataloader = data 
 
         self.gp_weight = 10
+
+        self.fixed_noise = fixed_gray_images
                 
     def wgan_loss(self,fake, real ):
         
@@ -101,8 +104,19 @@ class Trainer():
         loss.backward()
         self.dis_optimizer.step()
 
-        return loss 
+        return loss
+    
+    def plot_images(self,real_l, no_of_images, epoch_no):
 
+        _,pred_ab = self.generator(real_l)
+        img = torch.cat((real_l,pred_ab), dim =1)
+        img = img.to('cpu').numpy()
+        
+        for i in len(no_of_images):
+            img[i] = cv2.cvtColor(img[i], cv2.COLOR_Lab2LBGR)
+            plt.imshow(np.transpose(img[i], (1,2,0)), interpolation = 'none')
+            plt.savefig('Image_Epoch:{}_{}.png'.format(epoch_no+1,i+1))
+            
     def train(self):
 
         self.gen_loss = []
@@ -139,3 +153,6 @@ class Trainer():
 
             ## Print Epoch Information
             print('[ Generator Loss: {} | Discriminator Loss: {} ] '.format(gen_loss, dis_loss))
+
+            ## Plot predicted images to visualize images
+            self.plot_images(self.fixed_noise, self.fixed_noise.size()[0], epoch + 1)
