@@ -75,36 +75,36 @@ class Discriminator(nn.Module):
         self.model = nn.Sequential(
 
             nn.Conv2d(in_channels, 64, 3, stride =1, padding = 1),
-            nn.LeakyReLU(),
+            nn.LeakyReLU(0.2),
 
             nn.Conv2d(64,64,3,stride = 2, padding =1),
             nn.BatchNorm2d(64),
-            nn.LeakyReLU(),
+            nn.LeakyReLU(0.2),
 
             nn.Conv2d(64,128,3,stride = 1, padding =1),
             nn.BatchNorm2d(128),
-            nn.LeakyReLU(),
+            nn.LeakyReLU(0.2),
 
             nn.Conv2d(128,128,3,stride = 2, padding =1),
             nn.BatchNorm2d(128),
-            nn.LeakyReLU(),
+            nn.LeakyReLU(0.2),
 
             nn.Conv2d(128,256,3,stride = 1, padding =1),
             nn.BatchNorm2d(256),
-            nn.LeakyReLU(),
+            nn.LeakyReLU(0.2),
 
             nn.Conv2d(256,256,3,stride = 2, padding =1),
             nn.BatchNorm2d(256),
-            nn.LeakyReLU(),
+            nn.LeakyReLU(0.2),
 
             nn.Conv2d(256,512,3,stride = 1, padding =1),
             nn.BatchNorm2d(512),
-            nn.LeakyReLU(),
+            nn.LeakyReLU(0.2),
 
             nn.Conv2d(512,512,3,stride = 2, padding =1),
             nn.BatchNorm2d(512),
-            nn.LeakyReLU(),
-
+            nn.LeakyReLU(0.2),
+            
             nn.Conv2d(512,1,1)
         )
 
