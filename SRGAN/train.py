@@ -3,6 +3,9 @@ from tqdm import tqdm
 from torch.optim import Adam
 import torch.nn as nn
 import cv2
+import pretrainedmodels 
+import matplotlib.pyplot as plt 
+import numpy as np 
 
 class Trainer():
 
@@ -33,6 +36,8 @@ class Trainer():
         self.advloss = nn.BCEWithLogitsLoss(reduction='sum')
 
         self.lambda_adv = 1e-3
+        self.dataloader = data 
+        self.z = fixed_lr_images
 
     def train_gen(self, hr,lr):
 
@@ -41,7 +46,7 @@ class Trainer():
 
         ## Content Loss
         vgg_hr = self.vgg_model(hr)
-        vgg_lr  = self.vgg_model(gen_hr.detach())
+        vgg_lr  = self.vgg_model(gen_hr)
         con_loss = self.contentloss(vgg_lr, vgg_hr)
 
         ## Fake images for discriminator
@@ -71,7 +76,7 @@ class Trainer():
 
         ## Compute Loss
         real_loss = self.contentloss(real_dis_out, torch.ones_like(real_dis_out).to(self.device))
-        fake_loss = self.contentloss(fake_dis_out, torch.zeros_like(fake_loss).to(self.device))
+        fake_loss = self.contentloss(fake_dis_out, torch.zeros_like(fake_dis_out).to(self.device))
         loss = real_loss + fake_loss
         
         ##Update the weights
@@ -82,13 +87,14 @@ class Trainer():
         return loss
 
     def plot_images(self,lr, epoch_no):
+        lr = torch.tensor(lr, dtype = torch.float32).to(self.device)
+        with torch.no_grad():
+            gen_hr = self.generator(lr)
+        img = gen_hr.to('cpu').numpy()
+        for i in range(len(img)):        
+            plt.imshow(np.transpose(img[i], (1,2,0)), interpolation = 'none')
+            plt.savefig('Image_Epoch:{}_{}.png'.format(epoch_no+1,i+1))
         
-        self.generator = self.generator.eval()
-        gen_hr = self.generator(lr)
-        img = img.to('cpu').numpy()        
-        plt.imshow(np.transpose(img[i], (1,2,0)), interpolation = 'none')
-        plt.savefig('Image_Epoch:{}_{}.png'.format(epoch_no+1,i+1))
-        self.generator = self.generator.train()
     
     def train(self):
 
@@ -125,5 +131,4 @@ class Trainer():
             print('[ Generator Loss: {} | Discriminator Loss: {} ] '.format(gen_loss, dis_loss))
 
             ## Plot predicted images to visualize images
-            for i in len(fixed_lr_images):
-                self.plot_images(fixed_lr_images[i],epoch + 1)
+            self.plot_images(self.z,epoch + 1)

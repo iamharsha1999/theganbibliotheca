@@ -17,8 +17,8 @@ class ResidualBlock(nn.Module):
         )
 
     def forward(self, x):
-
-        return self.block(x) + x 
+        x = self.block(x) + x 
+        return x  
 
 
 class Generator(nn.Module):
@@ -62,7 +62,7 @@ class Generator(nn.Module):
         x = self.r4(x)
         x = self.r5(x)
 
-        x += self.l2(x)
+        x = x + self.l2(x)
         x = self.l3(x)
 
         return x 

@@ -1,9 +1,10 @@
 import torch 
-import cv2
+from PIL import Image
 from tqdm import tqdm
 from torch.utils.data import  Dataset
 from torchvision import datasets
 import os 
+import numpy as np
 
 class  Dataprep(Dataset):
 
@@ -38,13 +39,15 @@ class  Dataprep(Dataset):
 
     def __getitem__(self,idx):
 
-        img_n = self.data[idx][0].numpy()
-        img_n = cv2.resize(img_n, (img_n.size()[0]/self.ds_factor, img_n.size()[1]/self.ds_factor))
+        img, _ = self.data[idx]
+        h,w= img.size
+        img_n = img.resize((int(h/self.ds_factor),int(w/self.ds_factor)))
 
         ## Gaussian Noise 
-        img_n = self.gauss_noise(img_n)
-        img = torch.tensor(img_n, dtype=torch.float32)
+        img_n = self.gauss_noise(np.array(img_n))
+        img_n = torch.tensor(img_n, dtype=torch.float32).view(-1, int(h/self.ds_factor), int(w/self.ds_factor))
+        img = torch.tensor(np.array(img), dtype=torch.float32).view(-1,h,w)
         
-        return {'hr':img[idx],
+        return {'hr':img,
                         'lr':img_n}
 
