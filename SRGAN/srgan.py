@@ -69,7 +69,7 @@ class Generator(nn.Module):
 
 class Discriminator(nn.Module):
 
-    def __init__(self, in_channels,height, width):
+    def __init__(self, in_channels):
         super().__init__()
 
         self.model = nn.Sequential(
@@ -105,7 +105,12 @@ class Discriminator(nn.Module):
             nn.BatchNorm2d(512),
             nn.LeakyReLU(0.2),
             
-            nn.Conv2d(512,1,1)
+            nn.AdaptiveAvgPool2d(1),
+            nn.Conv2d(512,1024,1),
+            nn.LeakyReLU(0.2), 
+            
+            nn.Conv2d(1024, 1, 1),
+            nn.Sigmoid()
         )
 
     def forward(self,x):

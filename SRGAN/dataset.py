@@ -8,46 +8,64 @@ import numpy as np
 
 class  Dataprep(Dataset):
 
-    def __init__(self, root, mean =0, var = 0.1, sigma =25, data = 'stl-10'):
+    def __init__(self, root, data = 'voc2012'):
         super().__init__()
-
+       
         ## Root Directory 
         self.root = root 
 
-        self.mean = 0
-        self.var = 0.1
-        self.sigma = 25
+        ## Train Set
+        self.tr_data = data 
 
-        if data == 'stl-10':
+        if self.tr_data == 'stl-10':
             self.data = datasets.STL10(self.root, split = 'train', download = True)
-        
+        elif self.tr_data == 'imagenet':
+            self.data = datasets.ImageNet(self.root, split = 'train', download = True)
+        else:            
+            self.data_list = []
+            for image in os.listdir(self.root):
+                self.data_list.append(self.root + '/' + image)          
+
         ## Downscaling Factor
         self.ds_factor = 4
+        
 
     def __len__(self):
 
-        return len(self.data)
+        if self.tr_data == 'stl-10' or self.tr_data == 'imagenet':
+            return len(self.data)
+        else: 
+            return len(self.data_list)
     
-    def gauss_noise(self,image):
-        row, col, ch = image.shape
-        
-        gauss = np.random.normal(self.mean,self.sigma, (row, col, ch))
-        gauss = gauss.reshape(row, col, ch)
-        noisy = image + gauss
-
-        return noisy
-
     def __getitem__(self,idx):
-
-        img, _ = self.data[idx]
-        h,w= img.size
-        img_n = img.resize((int(h/self.ds_factor),int(w/self.ds_factor)))
-
-        ## Gaussian Noise 
-        img_n = self.gauss_noise(np.array(img_n))
-        img_n = torch.tensor(img_n, dtype=torch.float32).view(-1, int(h/self.ds_factor), int(w/self.ds_factor))
-        img = torch.tensor(np.array(img), dtype=torch.float32).view(-1,h,w)
         
-        return {'hr':img,
-                        'lr':img_n}
+        if self.tr_data == 'stl-10' or self.tr_data == 'imagenet':
+            img, _ = self.data[idx]
+        else:
+            img = Image.open(self.data_list[idx])
 
+        ## Resize the image (HR)
+        img = img.resize((224,224))
+        h,w = img.size 
+        
+        img_n = img
+        
+        ## Scale the image (HR)
+        img = np.asarray(img) / 255
+
+        img = np.transpose(img, (2,0,1))        
+        img = torch.tensor(np.asarray(img), dtype=torch.float32)
+
+        ## Resize the image (LR)
+        img_n = img_n.resize((int(h/self.ds_factor),int(w/self.ds_factor)))
+
+        ## Scale the image (LR)
+        img_n = np.asarray(img_n) /255
+            
+        img_n = np.transpose(img_n, (2,0,1))
+        img_n = torch.tensor(img_n, dtype=torch.float32)
+
+        return {
+            'hr': img,
+            'lr': img_n
+        }

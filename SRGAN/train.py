@@ -27,13 +27,12 @@ class Trainer():
         self.generator = self.generator.to(self.device)
         self.discriminator = self.discriminator.to(self.device)
 
-        self.epochs = 10
+        self.epochs = 100
         self.batch_size = 32
-        self.gen_optimizer = Adam(gen.parameters(), lr = 2e-5, betas=(0.5, 0.999))
-        self.dis_optimizer = Adam(dis.parameters(), lr = 2e-5, betas=(0.5, 0.999))
+        self.gen_optimizer = Adam(gen.parameters(), lr = 1e-4, betas=(0.9, 0.999))
+        self.dis_optimizer = Adam(dis.parameters(), lr = 1e-4, betas=(0.9, 0.999))
 
-        self.contentloss = nn.MSELoss() 
-        self.advloss = nn.BCEWithLogitsLoss(reduction='sum')
+        self.contentloss = nn.MSELoss(reduction = 'mean')        
 
         self.lambda_adv = 1e-3
         self.dataloader = data 
@@ -44,16 +43,18 @@ class Trainer():
         ## Generate images and class output
         gen_hr = self.generator(lr)
 
-        ## Content Loss
-        vgg_hr = self.vgg_model(hr)
-        vgg_lr  = self.vgg_model(gen_hr)
+        ## VGG Predictions
+        vgg_hr  = self.vgg_model(hr)
+        vgg_lr = self.vgg_model(gen_hr)
+
+        ## Content Loss        
         con_loss = self.contentloss(vgg_lr, vgg_hr)
 
         ## Fake images for discriminator
         dis_out = self.discriminator(gen_hr)
 
         ## Adversarial Loss
-        adv_loss = self.advloss(dis_out, torch.ones_like(dis_out).to(self.device))
+        adv_loss =  -torch.log(dis_out.mean())
 
         ##Overall Generator Loss 
         loss = con_loss + self.lambda_adv* adv_loss   
@@ -75,9 +76,7 @@ class Trainer():
         fake_dis_out = self.discriminator(gen_hr.detach())
 
         ## Compute Loss
-        real_loss = self.contentloss(real_dis_out, torch.ones_like(real_dis_out).to(self.device))
-        fake_loss = self.contentloss(fake_dis_out, torch.zeros_like(fake_dis_out).to(self.device))
-        loss = real_loss + fake_loss
+        loss = 1 - real_dis_out.mean() + fake_dis_out.mean()
         
         ##Update the weights
         self.discriminator.zero_grad()
@@ -93,8 +92,8 @@ class Trainer():
         img = gen_hr.to('cpu').numpy()
         for i in range(len(img)):        
             plt.imshow(np.transpose(img[i], (1,2,0)), interpolation = 'none')
-            plt.savefig('Image_Epoch:{}_{}.png'.format(epoch_no+1,i+1))
-        
+            plt.savefig('Image_Epoch:{}_{}.png'.format(epoch_no,i+1))
+               
     
     def train(self):
 
@@ -111,18 +110,18 @@ class Trainer():
             
             for batch in tqdm(self.dataloader):
 
-                hr,lr = batch['hr'].to(self.device),batch['lr'].to(self.device)
+                hr,lr = batch['hr'].to(self.device)  , batch['lr'].to(self.device) 
                 
                 ## Retrive the Batch Size
-                bs = hr.size(0)                
-
-                ## Update the generator
-                gen_loss = self.train_gen(hr, lr)
-                eg_loss.append(gen_loss)
+                bs = hr.size(0)    
 
                 ## Update the discrminator
                 dis_loss = self.train_disc(hr, lr)
-                ed_loss.append(dis_loss)
+                ed_loss.append(dis_loss)            
+
+                ## Update the generator
+                gen_loss = self.train_gen(hr, lr)
+                eg_loss.append(gen_loss)                
 
             self.gen_loss.append(torch.mean(torch.FloatTensor(eg_loss)))
             self.dis_loss.append(torch.mean(torch.FloatTensor(ed_loss)))
