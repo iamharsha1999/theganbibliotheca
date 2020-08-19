@@ -38,17 +38,21 @@ class Trainer():
         self.dataloader = data 
         self.z = fixed_lr_images
 
-    def train_gen(self, hr,lr):
+    def train_gen(self, hr,lr, conloss = 'mse'):
 
         ## Generate images and class output
         gen_hr = self.generator(lr)
 
-        ## VGG Predictions
-        vgg_hr  = self.vgg_model(hr)
-        vgg_lr = self.vgg_model(gen_hr)
+        
+        ## Content Loss
+        if conloss == 'mse':
+            con_loss = self.contentloss(gen_hr,hr)
+        else:
+            ## VGG Predictions
+            vgg_hr  = self.vgg_model(hr)
+            vgg_lr = self.vgg_model(gen_hr)
 
-        ## Content Loss        
-        con_loss = self.contentloss(vgg_lr, vgg_hr)
+            con_loss = self.contentloss(vgg_lr, vgg_hr)
 
         ## Fake images for discriminator
         dis_out = self.discriminator(gen_hr)
@@ -87,9 +91,12 @@ class Trainer():
 
     def plot_images(self,lr, epoch_no):
         lr = torch.tensor(lr, dtype = torch.float32).to(self.device)
+
         with torch.no_grad():
             gen_hr = self.generator(lr)
+
         img = gen_hr.to('cpu').numpy()
+
         for i in range(len(img)):        
             plt.imshow(np.transpose(img[i], (1,2,0)), interpolation = 'none')
             plt.savefig('Image_Epoch:{}_{}.png'.format(epoch_no,i+1))
@@ -100,7 +107,43 @@ class Trainer():
         self.gen_loss = []
         self.dis_loss = []
 
-        for epoch in range(self.epochs):
+        ## Generator initialization
+        for epoch in range(5):
+
+            epoch_loss = {'gen_loss':[], 'dis_loss':[]}
+            print('[Epoch: {} / {}]'.format(epoch+1, self.epochs))
+            
+            eg_loss = []
+            ed_loss = []
+
+            for batch in tqdm(self.dataloader):
+
+                hr,lr = batch['hr'].to(self.device)  , batch['lr'].to(self.device) 
+                
+                ## Retrive the Batch Size
+                bs = hr.size(0)    
+
+                ## Update the discrminator
+                dis_loss = self.train_disc(hr, lr)
+                ed_loss.append(dis_loss)            
+
+                ## Update the generator
+                gen_loss = self.train_gen(hr, lr)
+                eg_loss.append(gen_loss)                
+
+            self.gen_loss.append(torch.mean(torch.FloatTensor(eg_loss)))
+            self.dis_loss.append(torch.mean(torch.FloatTensor(ed_loss)))
+
+            ## Print Epoch Information
+            print('[ Generator Loss: {} | Discriminator Loss: {} ] '.format(gen_loss, dis_loss))
+
+            ## Plot predicted images to visualize images
+            self.plot_images(self.z,epoch + 1)
+        
+        print('Shifting to VGG Loss based training.....')
+
+        ## VGG Loss Training
+        for epoch in range(5,self.epochs+5):
 
             epoch_loss = {'gen_loss':[], 'dis_loss':[]}
             print('[Epoch: {} / {}]'.format(epoch+1, self.epochs))
@@ -120,7 +163,7 @@ class Trainer():
                 ed_loss.append(dis_loss)            
 
                 ## Update the generator
-                gen_loss = self.train_gen(hr, lr)
+                gen_loss = self.train_gen(hr, lr, conloss='vgg')
                 eg_loss.append(gen_loss)                
 
             self.gen_loss.append(torch.mean(torch.FloatTensor(eg_loss)))
