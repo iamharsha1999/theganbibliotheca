@@ -13,7 +13,9 @@ class Trainer():
         self.device = device 
         self.generator = gen 
         self.discriminator = dis
-        self.vgg_model = pretrainedmodels.__dict__['vgg16'](pretrained = 'imagenet').to(device)
+        self.vgg_model = pretrainedmodels.__dict__['vgg16'](pretrained = 'imagenet').to(device).eval()
+        for param in  self.vgg_model.parameters():
+            param.requires_grad = False
 
         ## Device Initialization
         if torch.cuda.is_available():
@@ -36,7 +38,7 @@ class Trainer():
 
         self.gp_weight = 10
 
-        self.fixed_noise = fixed_gray_images
+        self.fixed_noise = fixed_gray_images.to(self.device)
                 
     def wgan_loss(self,fake, real ):
         

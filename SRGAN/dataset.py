@@ -1,14 +1,16 @@
 import torch 
-from PIL import Image
+import cv2
 from tqdm import tqdm
 from torch.utils.data import  Dataset
 from torchvision import datasets
 import os 
 import numpy as np
+from albumentations import Compose, RandomCrop, Resize
+
 
 class  Dataprep(Dataset):
 
-    def __init__(self, root, data = 'voc2012'):
+    def __init__(self, root, crop_size = 96, data = 'voc2012'):
         super().__init__()
        
         ## Root Directory 
@@ -24,10 +26,17 @@ class  Dataprep(Dataset):
         else:            
             self.data_list = []
             for image in os.listdir(self.root):
-                self.data_list.append(self.root + '/' + image)          
+                h,w,_  = cv2.imread(self.root + '/' + image).shape
+                if h > 96 and w > 96:
+                    self.data_list.append(self.root + '/' + image)          
 
         ## Downscaling Factor
         self.ds_factor = 4
+
+        ## Transform functions
+        self.hr_transform = Compose([ RandomCrop(crop_size, crop_size) ])
+
+        self.lr_transform = Compose([ Resize( width = crop_size//4, height = crop_size//4 )])
         
 
     def __len__(self):
@@ -42,30 +51,20 @@ class  Dataprep(Dataset):
         if self.tr_data == 'stl-10' or self.tr_data == 'imagenet':
             img, _ = self.data[idx]
         else:
-            img = Image.open(self.data_list[idx])
-
-        ## Resize the image (HR)
-        img = img.resize((224,224))
-        h,w = img.size 
+            img = cv2.imread(self.data_list[idx])       
         
-        img_n = img
+        img_hr = self.hr_transform(image = img)['image'] 
+        img_lr =  self.lr_transform(image =  img_hr)['image'] 
+
+        img_hr = img_hr / 255
+        img_lr = img_lr / 255
         
-        ## Scale the image (HR)
-        img = np.asarray(img) / 255
-
-        img = np.transpose(img, (2,0,1))        
-        img = torch.tensor(np.asarray(img), dtype=torch.float32)
-
-        ## Resize the image (LR)
-        img_n = img_n.resize((int(h/self.ds_factor),int(w/self.ds_factor)))
-
-        ## Scale the image (LR)
-        img_n = np.asarray(img_n) /255
-            
-        img_n = np.transpose(img_n, (2,0,1))
-        img_n = torch.tensor(img_n, dtype=torch.float32)
-
+        img_hr = np.transpose(img_hr, (2,0,1))
+        img_lr = np.transpose(img_lr, (2,0,1))        
+        img_hr = torch.tensor(img_hr, dtype=torch.float32)
+        img_lr = torch.tensor(img_lr, dtype=torch.float32)        
+       
         return {
-            'hr': img,
-            'lr': img_n
+            'hr': img_hr,
+            'lr':  img_lr
         }
