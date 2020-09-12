@@ -9,7 +9,7 @@ import numpy as np
 
 class Trainer():
 
-    def __init__(self, gen , dis,data, fixed_lr_images,device = 'cuda'):
+    def __init__(self, gen , dis,data, fixed_lr_images,epochs = 25, batch_size = 32, device = 'cuda'):
 
         self.device = device 
         self.generator = gen 
@@ -27,8 +27,8 @@ class Trainer():
         self.generator = self.generator.to(self.device)
         self.discriminator = self.discriminator.to(self.device)
 
-        self.epochs = 25
-        self.batch_size = 32
+        self.epochs = epochs
+        self.batch_size = batch_size
         self.gen_optimizer = Adam(gen.parameters(), lr = 1e-4, betas=(0.9, 0.999))
         self.gen_optimizer2 = Adam(gen.parameters(), lr = 1e-5, betas=(0.9, 0.999))
         self.dis_optimizer = Adam(dis.parameters(), lr = 1e-4, betas=(0.9, 0.999))
@@ -111,15 +111,15 @@ class Trainer():
       if mode == 'best':
         if self.best_loss == 'na' :
             self.best_loss = loss_value
-            torch.save(self.generator.state_dict(), '/content/Epoch_{}_Generator.pth'.format(epoch+1))
+            torch.save(self.generator.state_dict(), 'Epoch_{}_Generator.pth'.format(epoch+1))
             print('Model Saved [Epoch:{}]'.format(epoch+1))
         else:
             if loss_value < self.best_loss:
                 self.best_loss = loss_value
-                torch.save(self.generator.state_dict(), '/content/Epoch_{}_Generator.pth'.format(epoch+1))
+                torch.save(self.generator.state_dict(), 'Epoch_{}_Generator.pth'.format(epoch+1))
                 print('Model Saved [Epoch:{}]'.format(epoch+1))
       else:
-        torch.save(self.generator.state_dict(), '/content/Epoch_{}_Generator.pth'.format(epoch+1))
+        torch.save(self.generator.state_dict(), 'Epoch_{}_Generator.pth'.format(epoch+1))
         print('Model Saved [Epoch:{}]'.format(epoch+1))
 
     
