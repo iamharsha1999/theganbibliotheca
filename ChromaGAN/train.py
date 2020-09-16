@@ -29,8 +29,8 @@ class Trainer():
 
         self.epochs = 5
         self.batch_size = 10
-        self.gen_optimizer = Adam(gen.parameters(), lr = 2e-5, betas=(0.5, 0.999))
-        self.dis_optimizer = Adam(dis.parameters(), lr = 2e-5, betas=(0.5, 0.999))
+        self.gen_optimizer = Adam(self.gen.parameters(), lr = 2e-5, betas=(0.5, 0.999))
+        self.dis_optimizer = Adam(self.dis.parameters(), lr = 2e-5, betas=(0.5, 0.999))
         
         self.klloss = nn.KLDivLoss()
         self.mseloss = nn.MSELoss()    
@@ -110,7 +110,8 @@ class Trainer():
     
     def plot_images(self,real_l, no_of_images, epoch_no):
 
-        _,pred_ab = self.generator(real_l)
+        with torch.no_grad():
+             _,pred_ab = self.generator(real_l)
         img = torch.cat((real_l,pred_ab), dim =1)
         img = img.to('cpu').numpy()
         

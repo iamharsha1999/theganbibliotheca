@@ -29,9 +29,9 @@ class Trainer():
 
         self.epochs = epochs
         self.batch_size = batch_size
-        self.gen_optimizer = Adam(gen.parameters(), lr = 1e-4, betas=(0.9, 0.999))
-        self.gen_optimizer2 = Adam(gen.parameters(), lr = 1e-5, betas=(0.9, 0.999))
-        self.dis_optimizer = Adam(dis.parameters(), lr = 1e-4, betas=(0.9, 0.999))
+        self.gen_optimizer = Adam(self.gen.parameters(), lr = 1e-4, betas=(0.9, 0.999))
+        self.gen_optimizer2 = Adam(self.gen.parameters(), lr = 1e-5, betas=(0.9, 0.999))
+        self.dis_optimizer = Adam(self.dis.parameters(), lr = 1e-4, betas=(0.9, 0.999))
 
         self.contentloss = nn.MSELoss()
 
